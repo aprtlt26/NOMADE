@@ -1,0 +1,237 @@
+body {
+  background-color: rgb(255, 255, 255);
+  font-family: Arial, sans-serif;
+}
+
+header {
+  background-color: rgb(255, 255, 255);
+  padding: 60px;
+  text-align: center;
+  overflow: hidden; /* Para limpiar los flotadores */
+  padding-top: 50px;
+}
+
+div{
+
+  text-align: center;
+}
+
+img  {
+
+  align-items: center;
+  display: flex;
+}
+
+header button {
+    
+    position: absolute;
+    bottom: 330px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.contenedor-imagenes {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+margin-bottom: 50px;}
+
+
+.img-izquierda {
+  float: left;
+  margin: 70px;
+  padding-top: 9px;
+}
+
+
+.img-derecha {
+  float: right;
+  padding-top: 1px;
+}
+
+
+header img {
+  display: inline-block; /* Hacer que la imagen sea un bloque de línea */
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto; /* Centrar horizontalmente */
+  padding-top: 30px;
+}
+
+
+h1 {
+  margin: 0;
+  text-align: center; /* Centrar el título */
+  padding-top: 50px;
+  padding: 50px;
+  color: rgb(188, 177, 226);
+}
+
+
+h3{
+  text-align: center;
+}
+
+ul{
+
+  padding: 10px;
+  padding-top: 10px;
+  margin: 70px;
+}
+
+section {
+  
+margin: 100px;
+
+}
+
+h2 {
+  margin-top: 0;
+  text-align: center; /* Centrar el título */
+  
+}
+
+h2 a{
+
+  text-align: center; /* Centrar el título */
+
+}
+
+
+
+section img {
+  display: block;
+  margin: 0 auto; /* Centrar la imagen */
+  max-width: 100%; /* Hacer que la imagen sea responsive */
+}
+
+
+
+/* Estilos para las páginas de texto completo */
+p {
+ 
+  text-align: justify;
+  justify-items: center;
+  text-align: justify;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+
+}
+
+p h2 {
+  padding-bottom: 30px;
+
+}
+
+h4{
+
+  text-align: center; /* Centrar el título */
+  padding-bottom: 30px;
+
+}
+
+/* Estilos para dispositivos móviles */
+@media only screen and (max-width: 600px) {
+  header {
+    padding: 10px;
+  }
+
+  main {
+    margin: 10px;
+  }
+
+  section {
+    margin-bottom: 100px;
+    margin: 100px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  p {
+    padding: 5px;
+    justify-items: center;
+    text-align: justify;
+    margin: 30px;
+  }
+
+  p h2 {
+    font-size: 20px;
+    text-align: justify;
+
+  }
+}
+
+.casillas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px;
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.casillas div {
+  width: calc(25% - 40px);
+  margin: 20px;
+  padding: 10px;
+  border: 0.4px solid #ffffff;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0px 0px 3px 0px #ffffff;
+  text-align: center;
+}
+
+.casillas h2 {
+  font-size: 1.3em;
+  margin-bottom: 10px;
+  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+ 
+}
+.casillas p {
+  font-size: 1em;
+  margin-bottom: 20px;
+  text-align: center; /* Centrar el título */
+  font-size: smaller;
+}
+
+.casillas a {
+  font-size: 1em;
+  color: #000000;
+  transition: color 0.3s ease-in-out; /* animación al cambiar el color */  
+}
+
+.casillas a:hover {
+  color: #b4a8e7; /* nuevo color del enlace al pasar el cursor */
+  text-decoration: none; /* quita el subrayado */
+
+}
+
+
+a{
+
+    text-decoration: none;
+    }
+
+
+    footer {
+      background-color: #ffffff;
+      padding: 50px;
+      overflow: hidden;
+    }
+    
+    .footer-left {
+      float: left;
+    }
+    
+    .footer-right {
+      float: right;
+    }
+    
+     
