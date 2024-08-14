@@ -867,8 +867,7 @@ display: flex;
 
 
 <script>
-    
-const events = [
+ const events = [
     {
         date: '2024-01-05',
         image: '',
@@ -898,11 +897,11 @@ function highlightCurrentMonth() {
     document.getElementById(`month-${currentMonth}`).classList.add('current-month');
 }
 
-
 const drawingCanvas = document.getElementById('drawing-canvas');
-        const drawingCtx = drawingCanvas.getContext('2d');
-        drawingCanvas.width = drawingCanvas.parentElement.clientWidth;
-        drawingCanvas.height = drawingCanvas.parentElement.clientHeight;
+const drawingCtx = drawingCanvas.getContext('2d');
+drawingCanvas.width = drawingCanvas.parentElement.clientWidth;
+drawingCanvas.height = drawingCanvas.parentElement.clientHeight;
+
 function generateCalendar(year, month) {
     calendar.innerHTML = '';
     const firstDay = new Date(year, month, 1).getDay();
@@ -1004,42 +1003,42 @@ function toggleExpand(dayCell, dateString) {
 }
 
 function startPosition(e) {
-            isDrawing = true;
-            if (e.type === 'touchstart') {
-                const touchPos = getTouchPos(canvas, e);
-                x = touchPos.x;
-                y = touchPos.y;
-            } else {
-                x = e.offsetX;
-                y = e.offsetY;
-            }
-        }
+    isDrawing = true;
+    if (e.type === 'touchstart') {
+        const touchPos = getTouchPos(canvas, e);
+        x = touchPos.x;
+        y = touchPos.y;
+    } else {
+        x = e.offsetX;
+        y = e.offsetY;
+    }
+}
 
-        function endPosition() {
-            isDrawing = false;
-            ctx.beginPath();
-        }
+function endPosition() {
+    isDrawing = false;
+    ctx.beginPath();
+}
 
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = colorPicker.value;
+function draw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = colorPicker.value;
 
-            if (e.type === 'touchmove') {
-                const touchPos = getTouchPos(canvas, e);
-                ctx.lineTo(touchPos.x, touchPos.y);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(touchPos.x, touchPos.y);
-            } else {
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(e.offsetX, e.offsetY);
-            }
-        }
+    if (e.type === 'touchmove') {
+        const touchPos = getTouchPos(canvas, e);
+        ctx.lineTo(touchPos.x, touchPos.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(touchPos.x, touchPos.y);
+    } else {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+    }
+}
 
 function goToMonth(month) {
     currentMonth = month;
@@ -1163,10 +1162,8 @@ function loadAudio(audioBlob) {
 
 highlightCurrentMonth();
 generateCalendar(currentYear, currentMonth);
-
-
-
 </script>
+
         
                                                   
    
