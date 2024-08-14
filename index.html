@@ -849,7 +849,6 @@ const eventDetails = document.getElementById('event-details');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
-let recording = false;
 let mediaRecorder;
 let audioChunks = [];
 let currentDay = null;
@@ -864,11 +863,6 @@ let currentYear = new Date().getFullYear();
 function highlightCurrentMonth() {
     document.getElementById(`month-${currentMonth}`).classList.add('current-month');
 }
-
-const drawingCanvas = document.getElementById('drawing-canvas');
-const drawingCtx = drawingCanvas.getContext('2d');
-drawingCanvas.width = drawingCanvas.parentElement.clientWidth;
-drawingCanvas.height = drawingCanvas.parentElement.clientHeight;
 
 function generateCalendar(year, month) {
     calendar.innerHTML = '';
@@ -970,87 +964,68 @@ function toggleExpand(dayCell, dateString) {
     }
 }
 
+function getTouchPos(canvas, touchEvent) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: touchEvent.touches[0].clientX - rect.left,
+        y: touchEvent.touches[0].clientY - rect.top
+    };
+}
+
 function startPosition(e) {
-    isDrawing = true;
-    if (e.type === 'touchstart') {
-        const touchPos = getTouchPos(canvas, e);
-        x = touchPos.x;
-        y = touchPos.y;
-    } else {
-        x = e.offsetX;
-        y = e.offsetY;
-    }
+    drawing = true;
+    ctx.beginPath();
+    const pos = e.touches ? getTouchPos(canvas, e) : { x: e.offsetX, y: e.offsetY };
+    ctx.moveTo(pos.x, pos.y);
 }
 
 function endPosition() {
-    isDrawing = false;
+    drawing = false;
     ctx.beginPath();
 }
 
 function draw(e) {
-    if (!isDrawing) return;
+    if (!drawing) return;
     e.preventDefault();
-    ctx.lineWidth = 2;
+    const pos = e.touches ? getTouchPos(canvas, e) : { x: e.offsetX, y: e.offsetY };
+    ctx.lineWidth = 5;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = colorPicker.value;
-  
-  
-
-    if (e.type === 'touchmove') {
-        const touchPos = getTouchPos(canvas, e);
-        ctx.lineTo(touchPos.x, touchPos.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(touchPos.x, touchPos.y);
-    } else {
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
-    }
-}
-
-function goToMonth(month) {
-    currentMonth = month;
-    generateCalendar(currentYear, currentMonth);
-}
-
-function startDrawing() {
-    drawing = true;
-}
-
-function stopDrawing() {
-    drawing = false;
+    ctx.strokeStyle = document.getElementById('colorPicker').value;
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
 }
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-canvas.addEventListener('mousedown', () => {
-    drawing = true;
-    ctx.beginPath();
-});
-
-canvas.addEventListener('mouseup', () => {
-    drawing = false;
-    ctx.closePath();
-});
-
+canvas.addEventListener('mousedown', startPosition);
+canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('touchstart', startPosition);
+canvas.addEventListener('touchend', endPosition);
+canvas.addEventListener('touchmove', draw);
 
-function draw(event) {
-    if (!drawing) return;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = document.getElementById('colorPicker').value;
-    ctx.lineTo(event.offsetX, event.offsetY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(event.offsetX, event.offsetY);
-    
-    ctx.moveTo(x, y);
+function loadCanvas(dataUrl) {
+    const img = new Image();
+    img.src = dataUrl;
+    img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+    };
 }
+
+function loadAudio(audioBlob) {
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.controls = true;
+    eventDetails.innerHTML = '';
+    eventDetails.appendChild(audio);
+}
+
+highlightCurrentMonth();
+generateCalendar(currentYear, currentMonth);
 
 function startRecording() {
     if (!recording) {
@@ -1116,78 +1091,19 @@ function saveToData(drawing, text, photo) {
     generateCalendar(currentYear, currentMonth);
 }
 
-function loadCanvas(dataUrl) {
-    const img = new Image();
-    img.src = dataUrl;
-    img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-    };
+function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
 }
 
-function loadAudio(audioBlob) {
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.controls = true;
-    eventDetails.innerHTML = ''; // Clear existing details
-    eventDetails.appendChild(audio);
-}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-highlightCurrentMonth();
-generateCalendar(currentYear, currentMonth);
+document.getElementById('clear-btn').addEventListener('click', clearCanvas);
+document.getElementById('color-btn').addEventListener('click', () => {
+    document.getElementById('colorPicker').value = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+});
 
-
-
-
-      
-
-        function resizeCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        canvas.addEventListener('touchstart', startPosition);
-        canvas.addEventListener('touchend', endPosition);
-        canvas.addEventListener('touchmove', draw);
-
-       
-
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const offsetX = rect.left;
-            const offsetY = rect.top;
-
-            let clientX, clientY;
-            if (e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
-            const x = clientX - offsetX;
-            const y = clientY - offsetY;
-
-            ctx.lineWidth = 5;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = color;
-
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        
-
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-
-        document.getElementById('color-btn').addEventListener('click', () => {
-            color = `#${Math.floor(Math.random()*16777215).toString(16)}`;
-        });
 </script>
 
         
