@@ -118,16 +118,9 @@ var woocommerce_params = {"ajax_url":"\/wp-admin\/admin-ajax.php","wc_ajax_url":
 @tailwind components;
 @tailwind utilities;
 
+
 body {
             background-color: #f4f4f4;
-        }
-        #drawing-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
         }
         .container {
             font-family: 'Anta', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
@@ -159,242 +152,226 @@ body {
             z-index: -1;
             border-radius: 10px;
         }
-
-        .instructions {
-            display: none;
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #a4e2f1f8;
-            color: #a3a3a3;
-            padding: 20px;
-            border-radius: 5px;
-            font-size: 14px;
-
-        }
-        .container:hover .instructions {
-            display: block;
-        }
-        .calendar-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .months-list ul {
-            list-style: none;
-            display: flex;
-            gap: 10px;
-            padding: 0;
-            margin: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .months-list li {
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background 0.3s;
-            color: #23d2b5e0;
-            font-size: 18px;
-            text-shadow: 1px 2px 2px #4041407b;
-        }
-        .months-list .current-month {
-            background: #a99dff5d;
-            color: #ffffff;
-            font-weight: bold;
-        }
-        .months-list li:hover {
-            background: #93e5c1a2;
-            color: #767676;
-        }
-        #calendar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0);
-            padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(117, 116, 116, 0.1);
-        }
+    .instructions {
+        display: none;
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #a4e2f1f8;
+        color: #a3a3a3;
+        padding: 20px;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    .container:hover .instructions {
+        display: block;
+    }
+    .months-list ul {
+        list-style: none;
+        display: flex;
+        gap: 10px;
+        padding: 0;
+        margin: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .months-list li {
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background 0.3s;
+        color: #23d2b5e0;
+        font-size: 18px;
+        text-shadow: 1px 2px 2px #4041407b;
+    }
+    .months-list .current-month {
+        background: #a99dff5d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+    .months-list li:hover {
+        background: #93e5c1a2;
+        color: #767676;
+    }
+    #calendar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0);
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(117, 116, 116, 0.1);
+    }
+    .day {
+        width: 100px;
+        height: 100px;
+        border: 1px solid #59fab1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #d9b6ff78;
+        border-radius: 5px;
+        transition: transform 0.3s, background 0.3s;
+        cursor: pointer;
+    }
+    .day.expanded {
+        transform: scale(1.3);
+        z-index: 10;
+        background: #7c787867;
+    }
+    .thumbnail {
+        width: 100px;
+        height: 100px;
+        border: 1px solid #00000000;
+        background-color: #39ffce71;
+        margin-top: 0px;
+    }
+    #event-details {
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
+        width: 80%;
+        text-align: center;
+    }
+    #event-details img,
+    #event-details iframe {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+    }
+    .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .toolbar button {
+        cursor: pointer;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        background: #c4abe29d;
+        color: #ffffff;
+        transition: background 0.3s;
+    }
+    .toolbar button:hover {
+        background: #8fffe97b;
+    }
+    .canvas-container {
+        width: 100%;
+        height: 400px;
+        border: 1px solid #363636;
+        margin-top: 20px;
+        position: relative;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(238, 142, 255, 0.1);
+    }
+    #canvas {
+        width: 100%;
+        height: 100%;
+    }
+    #text-input,
+    #image-input {
+        margin-top: 10px;
+        text-align: center;
+    }
+    @media (max-width: 768px) {
         .day {
-            width: 100px;
-            height: 100px;
-            border: 1px solid #59fab1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #d9b6ff78;
-            border-radius: 5px;
-            transition: transform 0.3s, background 0.3s;
-            cursor: pointer;
+            width: 80px;
+            height: 80px;
         }
         .day.expanded {
-            transform: scale(1.3);
-            z-index: 10;
-            background: #7c787867;
-
-
+            transform: scale(1.5);
         }
-        .thumbnail {
-            width: 100px;
-            height: 100px;
-            border: 1px solid #00000000;
-            background-color: #39ffce71;
-            margin-top: 0px;
+    }
+    @media (max-width: 480px) {
+        .day {
+            width: 60px;
+            height: 60px;
         }
-        #event-details {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
-            width: 80%;
-            text-align: center;
+        .day.expanded {
+            transform: scale(1.2);
         }
-        #event-details img,
-        #event-details iframe {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-        }
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .toolbar button {
-            cursor: pointer;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background: #c4abe29d;
-            color: #ffffff;
-            transition: background 0.3s;
-        }
-        .toolbar button:hover {
-            background: #8fffe97b;
-        }
-        .canvas-container {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #363636;
-            margin-top: 20px;
-            position: relative;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(238, 142, 255, 0.1);
-        }
-        #canvas {
-            width: 100%;
-            height: 100%;
-        }
-        #text-input,
-        #image-input {
-            margin-top: 10px;
-            text-align: center;
-   
-        }
-        @media (max-width: 768px) {
-            .day {
-                width: 80px;
-                height: 80px;
-            }
-            .day.expanded {
-                transform: scale(1.5);
-            }
-        }
-        @media (max-width: 480px) {
-            .day {
-                width: 60px;
-                height: 60px;
-            }
-            .day.expanded {
-                transform: scale(1.2);
-            }
-        }
+    }
+    .ascii-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        white-space: pre;
+        z-index: 1000;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background-color: #e3ccf443;
+    }
+    @media (min-width: 1024px) {
         .ascii-background {
-            position: absolute;
-            top: 0;
-            left: 0;
+            font-size: 1.5vw;
+        }
+    }
+    @media (max-width: 1023px) and (min-width: 768px) {
+        .ascii-background {
+            font-size: 3vw;
+        }
+    }
+    @media (max-width: 767px) and (min-width: 480px) {
+        .ascii-background {
+            font-size: 4vw;
+        }
+    }
+    @media (max-width: 479px) {
+        .ascii-background {
+            font-size: 5vw;
+        }
+    }
+    .colored-text {
+        animation: colorChange 2s infinite alternate;
+    }
+    @keyframes colorChange {
+        0% { color: rgb(169, 0, 247); }
+        25% { color: rgb(31, 31, 31); }
+        50% { color: rgb(140, 56, 219); }
+        75% { color: rgb(201, 44, 44); }
+        100% { color: rgb(255, 0, 132); }
+    }
+    .map-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    @media (max-width: 768px) {
+        .map-container iframe {
             width: 100%;
-            height: 100%;
-            overflow: hidden;
-            white-space: pre;
-            z-index: 1000;
-            pointer-events: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background-color: #e3ccf443;
+            height: auto;
+            margin-bottom: 10px;
         }
-        @media (min-width: 1024px) {
-            .ascii-background {
-                font-size: 1.5vw;
-            }
-        }
-        @media (max-width: 1023px) and (min-width: 768px) {
-            .ascii-background {
-                font-size: 3vw;
-            }
-        }
-        @media (max-width: 767px) and (min-width: 480px) {
-            .ascii-background {
-                font-size: 4vw;
-            }
-        }
-        @media (max-width: 479px) {
-            .ascii-background {
-                font-size: 5vw;
-            }
-        }
-        .colored-text {
-            animation: colorChange 2s infinite alternate;
-        }
-        @keyframes colorChange {
-            0% { color: rgb(169, 0, 247); }
-            25% { color: rgb(31, 31, 31); }
-            50% { color: rgb(140, 56, 219); }
-            75% { color: rgb(201, 44, 44); }
-            100% { color: rgb(255, 0, 132); }
-        }
-
-        .map-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        @media (max-width: 768px) {
-            .map-container iframe {
-                width: 100%;
-                height: auto;
-                margin-bottom: 10px;
-            }
-        }
-        @media (max-width: 768px) {
-    .toolbar {
-        flex-direction: column;
-        gap: 4px;
     }
-  }
-
-  @media (max-width: 480px) {
-    .toolbar {
-        flex-direction: column;
-        gap: 4px;
+    @media (max-width: 768px) {
+        .toolbar {
+            flex-direction: column;
+            gap: 4px;
+        }
     }
-  }
+    @media (max-width: 480px) {
+        .toolbar {
+            flex-direction: column;
+            gap: 4px;
+        }
+    }
+</style>
 
-  
-
-  
-    </style>
                             
 
                         <!-- REDES SOCIALES -->
@@ -1016,6 +993,8 @@ function draw(e) {
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.strokeStyle = colorPicker.value;
+  
+  
 
     if (e.type === 'touchmove') {
         const touchPos = getTouchPos(canvas, e);
@@ -1069,6 +1048,8 @@ function draw(event) {
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(event.offsetX, event.offsetY);
+    
+    ctx.moveTo(x, y);
 }
 
 function startRecording() {
@@ -1153,6 +1134,60 @@ function loadAudio(audioBlob) {
 
 highlightCurrentMonth();
 generateCalendar(currentYear, currentMonth);
+
+
+
+
+      
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        canvas.addEventListener('touchstart', startPosition);
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw);
+
+       
+
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const offsetX = rect.left;
+            const offsetY = rect.top;
+
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            const x = clientX - offsetX;
+            const y = clientY - offsetY;
+
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        
+
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('color-btn').addEventListener('click', () => {
+            color = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+        });
 </script>
 
         
