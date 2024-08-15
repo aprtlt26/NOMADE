@@ -701,9 +701,8 @@ display: flex;
   </div> </div>
   <div class="instructions">Selecciona el día, graba tu voz, escribe un texto, carga una imagen o ilustra algo, guarda esto en la memoria de tus días.</div>
 
-<div class="container">
-        <button id="toggleVisibility" class="text-4xl sm:text-5xl lg:text-4xl 2xl:text-7xl font-bold font-Paytone text-primary capitalize mx-auto" style="color: rgb(172, 98, 194); background-color: transparent; border: none; cursor: pointer;">BitácorAPP</button>
-
+  <section class="container">
+    <button id="toggleVisibility" class="text-4xl sm:text-5xl lg:text-4xl 2xl:text-7xl font-bold font-Paytone text-primary capitalize mx-auto" style="color: rgb(172, 98, 194); background-color: transparent; border: none; cursor: pointer;">BitácorAPP</button>
     <div id="calendar-container">
         <div class="months-list">
             <ul id="months">
@@ -735,7 +734,6 @@ display: flex;
         <div class="canvas-container">
             <canvas id="canvas"></canvas>
             <canvas id="drawing-canvas"></canvas>
-
         </div>
         <div id="text-input">
             <textarea id="textArea" rows="4" cols="50" placeholder="Write your note here..."></textarea>
@@ -744,9 +742,9 @@ display: flex;
             <input type="file" id="fileInput" accept="image/*">
         </div>
     </div>
-</div>
+</section>
 
-    <script>
+<script>
     document.getElementById('toggleVisibility').addEventListener('click', function() {
         const calendarContainer = document.getElementById('calendar-container');
         const mapContainer = document.getElementById('map-container');
@@ -758,7 +756,277 @@ display: flex;
             mapContainer.style.display = 'none';
         }
     });
-    </script>
+
+    const events = [
+        {
+            date: '2024-01-05',
+            image: '',
+            info: 'Bitácorapp',
+            pdf: null
+        },
+    ];
+
+    const calendar = document.getElementById('calendar');
+    const eventDetails = document.getElementById('event-details');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let recording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+    let currentDay = null;
+    let savedData = {};
+
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
+    function highlightCurrentMonth() {
+        document.getElementById(`month-${currentMonth}`).classList.add('current-month');
+    }
+
+    function generateCalendar(year, month) {
+        calendar.innerHTML = '';
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'day';
+            calendar.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'day';
+            const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            const event = events.find(e => e.date === dateString);
+            if (event) {
+                const img = document.createElement('img');
+                img.src = event.image;
+                img.alt = `Event on ${dateString}`;
+                img.onclick = () => showEventDetails(event);
+                dayCell.appendChild(img);
+            }
+
+            if (savedData[dateString]) {
+                if (savedData[dateString].drawing) {
+                    const thumbnail = document.createElement('img');
+                    thumbnail.src = savedData[dateString].drawing;
+                    thumbnail.className = 'thumbnail';
+                    dayCell.appendChild(thumbnail);
+                }
+                if (savedData[dateString].text) {
+                    const textIcon = document.createElement('span');
+                    textIcon.textContent = '📝';
+                    dayCell.appendChild(textIcon);
+                }
+                if (savedData[dateString].photo) {
+                    const photoIcon = document.createElement('span');
+                    photoIcon.textContent = '📷';
+                    dayCell.appendChild(photoIcon);
+                }
+            }
+
+            dayCell.onclick = () => toggleExpand(dayCell, dateString);
+            dayCell.innerHTML += `<div>${day}</div>`;
+            calendar.appendChild(dayCell);
+        }
+    }
+
+    function showEventDetails(event) {
+        if (event.pdf) {
+            eventDetails.innerHTML = `
+                <iframe src="${event.pdf}" width="600" height="400"></iframe>
+                <div>${event.info}</div>
+            `;
+        } else {
+            eventDetails.innerHTML = `
+                <img src="${event.image}" alt="Event Image">
+                <div>${event.info}</div>
+            `;
+        }
+    }
+
+    function toggleExpand(dayCell, dateString) {
+        if (currentDay === dateString) {
+            dayCell.classList.remove('expanded');
+            clearCanvas();
+            eventDetails.innerHTML = '';
+            currentDay = null;
+        } else {
+            const expandedCells = document.querySelectorAll('.day.expanded');
+            expandedCells.forEach(cell => cell.classList.remove('expanded'));
+            dayCell.classList.add('expanded');
+            currentDay = dateString;
+            if (savedData[dateString]) {
+                if (savedData[dateString].drawing) {
+                    loadCanvas(savedData[dateString].drawing);
+                }
+                if (savedData[dateString].audio) {
+                    loadAudio(savedData[dateString].audio);
+                }
+                if (savedData[dateString].text) {
+                    document.getElementById('textArea').value = savedData[dateString].text;
+                }
+                if (savedData[dateString].photo) {
+                    const img = new Image();
+                    img.src = savedData[dateString].photo;
+                    img.className = 'thumbnail';
+                    eventDetails.appendChild(img);
+                }
+            } else {
+                clearCanvas();
+                eventDetails.innerHTML = '';
+                document.getElementById('textArea').value = '';
+                document.getElementById('fileInput').value = '';
+            }
+        }
+    }
+
+    function getTouchPos(canvas, touchEvent) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: touchEvent.touches[0].clientX - rect.left,
+            y: touchEvent.touches[0].clientY - rect.top
+        };
+    }
+
+    function startPosition(e) {
+        drawing = true;
+        ctx.beginPath();
+        const pos = e.touches ? getTouchPos(canvas, e) : { x: e.offsetX, y: e.offsetY };
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function endPosition() {
+        drawing = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const pos = e.touches ? getTouchPos(canvas, e) : { x: e.offsetX, y: e.offsetY };
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = document.getElementById('colorPicker').value;
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', endPosition);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchstart', startPosition);
+    canvas.addEventListener('touchend', endPosition);
+    canvas.addEventListener('touchmove', draw);
+
+    function loadCanvas(dataUrl) {
+        const img = new Image();
+        img.src = dataUrl;
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0);
+        };
+    }
+
+    function loadAudio(audioBlob) {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.controls = true;
+        eventDetails.innerHTML = '';
+        eventDetails.appendChild(audio);
+    }
+
+    highlightCurrentMonth();
+    generateCalendar(currentYear, currentMonth);
+
+    function startRecording() {
+        if (!recording) {
+            recording = true;
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks);
+                        if (currentDay) {
+                            if (!savedData[currentDay]) {
+                                savedData[currentDay] = {};
+                            }
+                            savedData[currentDay].audio = audioBlob;
+                            loadAudio(audioBlob);
+                        }
+                        audioChunks = [];
+                    };
+                    mediaRecorder.start();
+                });
+        }
+    }
+
+    function stopRecording() {
+        if (recording) {
+            recording = false;
+            mediaRecorder.stop();
+        }
+    }
+
+    function saveData() {
+        if (currentDay) {
+            const drawing = canvas.toDataURL();
+            const text = document.getElementById('textArea').value;
+            const fileInput = document.getElementById('fileInput');
+            let photo = null;
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    photo = e.target.result;
+                    saveToData(drawing, text, photo);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveToData(drawing, text, photo);
+            }
+        } else {
+            alert('Select a day to save data.');
+        }
+    }
+
+    function saveToData(drawing, text, photo) {
+        if (!savedData[currentDay]) {
+            savedData[currentDay] = {};
+        }
+        savedData[currentDay].drawing = drawing;
+        savedData[currentDay].text = text;
+        savedData[currentDay].photo = photo;
+        alert('Data saved!');
+        generateCalendar(currentYear, currentMonth);
+    }
+
+    function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    document.getElementById('clear-btn').addEventListener('click', clearCanvas);
+    document.getElementById('color-btn').addEventListener('click', () => {
+        document.getElementById('colorPicker').value = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+    });
+</script>
 
    
 
@@ -834,277 +1102,6 @@ display: flex;
 
 
 
-<script>
- const events = [
-    {
-        date: '2024-01-05',
-        image: '',
-        info: 'Bitácorapp',
-        pdf: null
-    },
-];
-
-const calendar = document.getElementById('calendar');
-const eventDetails = document.getElementById('event-details');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let drawing = false;
-let mediaRecorder;
-let audioChunks = [];
-let currentDay = null;
-let savedData = {};
-
-canvas.width = canvas.parentElement.clientWidth;
-canvas.height = canvas.parentElement.clientHeight;
-
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-
-function highlightCurrentMonth() {
-    document.getElementById(`month-${currentMonth}`).classList.add('current-month');
-}
-
-function generateCalendar(year, month) {
-    calendar.innerHTML = '';
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'day';
-        calendar.appendChild(emptyCell);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayCell = document.createElement('div');
-        dayCell.className = 'day';
-        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-        const event = events.find(e => e.date === dateString);
-        if (event) {
-            const img = document.createElement('img');
-            img.src = event.image;
-            img.alt = `Event on ${dateString}`;
-            img.onclick = () => showEventDetails(event);
-            dayCell.appendChild(img);
-        }
-
-        if (savedData[dateString]) {
-            if (savedData[dateString].drawing) {
-                const thumbnail = document.createElement('img');
-                thumbnail.src = savedData[dateString].drawing;
-                thumbnail.className = 'thumbnail';
-                dayCell.appendChild(thumbnail);
-            }
-            if (savedData[dateString].text) {
-                const textIcon = document.createElement('span');
-                textIcon.textContent = '📝';
-                dayCell.appendChild(textIcon);
-            }
-            if (savedData[dateString].photo) {
-                const photoIcon = document.createElement('span');
-                photoIcon.textContent = '📷';
-                dayCell.appendChild(photoIcon);
-            }
-        }
-
-        dayCell.onclick = () => toggleExpand(dayCell, dateString);
-        dayCell.innerHTML += `<div>${day}</div>`;
-        calendar.appendChild(dayCell);
-    }
-}
-
-function showEventDetails(event) {
-    if (event.pdf) {
-        eventDetails.innerHTML = `
-            <iframe src="${event.pdf}" width="600" height="400"></iframe>
-            <div>${event.info}</div>
-        `;
-    } else {
-        eventDetails.innerHTML = `
-            <img src="${event.image}" alt="Event Image">
-            <div>${event.info}</div>
-        `;
-    }
-}
-
-function toggleExpand(dayCell, dateString) {
-    if (currentDay === dateString) {
-        dayCell.classList.remove('expanded');
-        clearCanvas();
-        eventDetails.innerHTML = '';
-        currentDay = null;
-    } else {
-        const expandedCells = document.querySelectorAll('.day.expanded');
-        expandedCells.forEach(cell => cell.classList.remove('expanded'));
-        dayCell.classList.add('expanded');
-        currentDay = dateString;
-        if (savedData[dateString]) {
-            if (savedData[dateString].drawing) {
-                loadCanvas(savedData[dateString].drawing);
-            }
-            if (savedData[dateString].audio) {
-                loadAudio(savedData[dateString].audio);
-            }
-            if (savedData[dateString].text) {
-                document.getElementById('textArea').value = savedData[dateString].text;
-            }
-            if (savedData[dateString].photo) {
-                const img = new Image();
-                img.src = savedData[dateString].photo;
-                img.className = 'thumbnail';
-                eventDetails.appendChild(img);
-            }
-        } else {
-            clearCanvas();
-            eventDetails.innerHTML = '';
-            document.getElementById('textArea').value = '';
-            document.getElementById('fileInput').value = '';
-        }
-    }
-}
-
-function getTouchPos(canvas, touchEvent) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-        x: touchEvent.touches[0].clientX - rect.left,
-        y: touchEvent.touches[0].clientY - rect.top
-    };
-}
-
-function startPosition(e) {
-    drawing = true;
-    ctx.beginPath();
-    const pos = e.touches ? getTouchPos(canvas, e) : { x: e.offsetX, y: e.offsetY };
-    ctx.moveTo(pos.x, pos.y);
-}
-
-function endPosition() {
-    drawing = false;
-    ctx.beginPath();
-}
-
-function draw(e) {
-    if (!drawing) return;
-    e.preventDefault();
-    const pos = e.touches ? getTouchPos(canvas, e) : { x: e.offsetX, y: e.offsetY };
-    ctx.lineWidth = 5;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = document.getElementById('colorPicker').value;
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-}
-
-function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-canvas.addEventListener('mousedown', startPosition);
-canvas.addEventListener('mouseup', endPosition);
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('touchstart', startPosition);
-canvas.addEventListener('touchend', endPosition);
-canvas.addEventListener('touchmove', draw);
-
-function loadCanvas(dataUrl) {
-    const img = new Image();
-    img.src = dataUrl;
-    img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-    };
-}
-
-function loadAudio(audioBlob) {
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.controls = true;
-    eventDetails.innerHTML = '';
-    eventDetails.appendChild(audio);
-}
-
-highlightCurrentMonth();
-generateCalendar(currentYear, currentMonth);
-
-function startRecording() {
-    if (!recording) {
-        recording = true;
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks);
-                    if (currentDay) {
-                        if (!savedData[currentDay]) {
-                            savedData[currentDay] = {};
-                        }
-                        savedData[currentDay].audio = audioBlob;
-                        loadAudio(audioBlob);
-                    }
-                    audioChunks = [];
-                };
-                mediaRecorder.start();
-            });
-    }
-}
-
-function stopRecording() {
-    if (recording) {
-        recording = false;
-        mediaRecorder.stop();
-    }
-}
-
-function saveData() {
-    if (currentDay) {
-        const drawing = canvas.toDataURL();
-        const text = document.getElementById('textArea').value;
-        const fileInput = document.getElementById('fileInput');
-        let photo = null;
-        if (fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                photo = e.target.result;
-                saveToData(drawing, text, photo);
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        } else {
-            saveToData(drawing, text, photo);
-        }
-    } else {
-        alert('Select a day to save data.');
-    }
-}
-
-function saveToData(drawing, text, photo) {
-    if (!savedData[currentDay]) {
-        savedData[currentDay] = {};
-    }
-    savedData[currentDay].drawing = drawing;
-    savedData[currentDay].text = text;
-    savedData[currentDay].photo = photo;
-    alert('Data saved!');
-    generateCalendar(currentYear, currentMonth);
-}
-
-function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-}
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-document.getElementById('clear-btn').addEventListener('click', clearCanvas);
-document.getElementById('color-btn').addEventListener('click', () => {
-    document.getElementById('colorPicker').value = `#${Math.floor(Math.random()*16777215).toString(16)}`;
-});
-
-</script>
 
         
                                                   
