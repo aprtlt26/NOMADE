@@ -989,36 +989,52 @@ display: flex;
         generateCalendar(currentYear, currentMonth);
 
         function startRecording() {
-            if (!recording) {
-                recording = true;
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        mediaRecorder = new MediaRecorder(stream);
-                        mediaRecorder.ondataavailable = event => {
-                            audioChunks.push(event.data);
-                        };
-                        mediaRecorder.onstop = () => {
-                            const audioBlob = new Blob(audioChunks);
-                            if (currentDay) {
-                                if (!savedData[currentDay]) {
-                                    savedData[currentDay] = {};
-                                }
-                                savedData[currentDay].audio = audioBlob;
-                                loadAudio(audioBlob);
+        if (!recording) {
+            recording = true;
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioChunks = [];
+                        if (currentDay) {
+                            if (!savedData[currentDay]) {
+                                savedData[currentDay] = {};
                             }
-                            audioChunks = [];
-                        };
-                        mediaRecorder.start();
-                    });
-            }
+                            savedData[currentDay].audio = audioBlob;
+                            loadAudio(audioBlob);
+                        }
+                    };
+                    mediaRecorder.start();
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                });
         }
+    }
 
-        function stopRecording() {
-            if (recording) {
-                recording = false;
-                mediaRecorder.stop();
-            }
+    function stopRecording() {
+        if (recording) {
+            recording = false;
+            mediaRecorder.stop();
         }
+    }
+
+    function loadAudio(audioBlob) {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.controls = true;
+        eventDetails.innerHTML = '';
+        eventDetails.appendChild(audio);
+    }
+
+    document.getElementById('toggleVisibility').addEventListener('click', function() {
+        const calendarContainer = document.getElementById('calendar-container');
+        calendarContainer.style.display = calendarContainer.style.display === 'none' ? 'block' : 'none';
+    });
 
         function saveData() {
             if (currentDay) {
